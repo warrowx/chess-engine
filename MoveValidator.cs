@@ -3,7 +3,7 @@ using System.Net;
 class MoveValidator
 {
     public static bool IsPawnMoveValid(
-        int fromRow, int fromCol, int toRow, int toCol, bool isWhiteTurn, string[,] board
+        int fromRow, int fromCol, int toRow, int toCol, bool isWhiteTurn, string[,] board, (int row, int col)? enPassantTarget
     )
     {
         int whiteStartRow = 6;
@@ -38,6 +38,20 @@ class MoveValidator
         if (!isWhiteTurn && toRow == fromRow + 1 && (toCol == fromCol - 1 || toCol == fromCol + 1) && char.IsUpper(board[toRow, toCol][0]))
         {
             return true;
+        }
+
+        // Проверка на взятие на проходе
+        if (enPassantTarget.HasValue)
+        {
+            if (toRow == enPassantTarget.Value.row && 
+            toCol == enPassantTarget.Value.col && 
+            board[toRow, toCol] == "." && 
+            Math.Abs(toCol - fromCol) == 1 && 
+            (isWhiteTurn ? toRow == fromRow - 1 : toRow == fromRow + 1) && 
+            (isWhiteTurn ? board[fromRow, toCol] == "p" : board[fromRow, toCol] == "P"))
+            {
+                return true;
+            }
         }
         return false;
     }

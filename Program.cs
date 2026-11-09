@@ -16,24 +16,24 @@ class Program
         }
 
         // Расставляем белые фигуры
-        board[7, 4] = "K";
-        board[7, 3] = "Q";
         board[7, 0] = "R";
-        board[7, 7] = "R";
         board[7, 1] = "N";
         board[7, 2] = "B";
+        board[7, 3] = "Q";
+        board[7, 4] = "K";
         board[7, 5] = "B";
         board[7, 6] = "N";
+        board[7, 7] = "R";
 
         // Расставляем чёрные фигуры
-        board[0, 4] = "k";
-        board[0, 3] = "q";
         board[0, 0] = "r";
-        board[0, 7] = "r";
         board[0, 1] = "n";
         board[0, 2] = "b";
+        board[0, 3] = "q";
+        board[0, 4] = "k";
         board[0, 5] = "b";
         board[0, 6] = "n";
+        board[0, 7] = "r";
 
         // Белые пешки
         for (int col = 0; col < 8; col++)
@@ -84,7 +84,7 @@ class Program
 
             for (int row = 0; row < 8; row++)
             {
-             for (int col = 0; col < 8; col++)
+                for (int col = 0; col < 8; col++)
                 {
                     Console.Write(board[row, col] + " ");
                 }
@@ -107,6 +107,9 @@ class Program
             return file - 'a';
     }
 
+        static (int row, int col)? enPassantTarget = null;
+        
+
     static bool MovePiece(string[,] board, string move, bool whiteTurn)
     {
         // Пример хода: "e2e4"
@@ -127,11 +130,13 @@ class Program
         int toRow = GetRow(toRank);
         int toCol = GetCol(toFile);
 
+
         if (board[fromRow, fromCol] == ".")
         {
             Console.WriteLine("Нет фигуры на исходной позиции.");
             return false;
         }
+
         if (fromRow == toRow && fromCol == toCol)
         {
             Console.WriteLine("Нельзя перемещать фигуру на ту же клетку.");
@@ -139,6 +144,7 @@ class Program
         }
 
         char movingPiece = board[fromRow, fromCol][0];
+
         if (whiteTurn && char.IsLower(movingPiece))
         {
             Console.WriteLine("Сейчас ход белых. Вы не можете ходить черными фигурами.");
@@ -167,11 +173,12 @@ class Program
             }
             
         }
+
         // Проверка на легальность хода
         // Пешка
         if (char.ToUpper(movingPiece) == 'P')
         {
-            if (!MoveValidator.IsPawnMoveValid(fromRow, fromCol, toRow, toCol, whiteTurn, board))
+            if (!MoveValidator.IsPawnMoveValid(fromRow, fromCol, toRow, toCol, whiteTurn, board, enPassantTarget))
             {
                 Console.WriteLine("Неверный ход пешки.");
                 return false;
@@ -223,17 +230,40 @@ class Program
             }
         }
 
+        // Является ли взятием на проходе
+        bool isEnPassant =
+            char.ToUpper(movingPiece) == 'P' &&
+            enPassantTarget.HasValue &&
+            toRow == enPassantTarget.Value.row &&
+            toCol == enPassantTarget.Value.col &&
+            board[toRow, toCol] == ".";
+
         // Проверка безопасноти собственного короля
         string capturedPiece = board[toRow, toCol];
+
         // Временно перемещаем фигуру
         board[toRow, toCol] = board[fromRow, fromCol];
         board[fromRow, fromCol] = ".";
+        // Временно убираем пешку при взятии на проходе
+        string enPassantCapturedPiece = ".";
+
+        if (isEnPassant)
+        {
+            enPassantCapturedPiece = board[fromRow, toCol];
+            board[fromRow, toCol] = ".";
+        }
 
         bool inCheck = KingSafety.IsKingInCheck(board, whiteTurn);
+
 
         // Восстанавливаем доску
         board[fromRow, fromCol] = board[toRow, toCol];
         board[toRow, toCol] = capturedPiece;
+
+        if (isEnPassant)
+        {
+            board[fromRow, toCol] = enPassantCapturedPiece;
+        } 
 
         if (inCheck)
         {
@@ -241,11 +271,26 @@ class Program
             return false;
         }
 
+        // Обновляем цель для следующего взятия на проходе
+        enPassantTarget = null;
         
+        if (char.ToUpper(movingPiece) == 'P' && 
+            Math.Abs(fromRow - toRow) == 2)
+        {
+            int targetRow = (fromRow + toRow) / 2;
+            enPassantTarget = (targetRow, fromCol);
+        }
+
         // Перемещаем фигуру
         board[toRow, toCol] = board[fromRow, fromCol];
         board[fromRow, fromCol] = ".";
+        if (isEnPassant)
+        {
+            board[fromRow, toCol] = ".";
+        } 
         return true;
+
     }
+
 }
 
