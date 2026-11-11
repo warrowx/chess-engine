@@ -1,4 +1,3 @@
-using System.Net;
 
 class MoveValidator
 {
@@ -142,5 +141,11 @@ class MoveValidator
             return false;
         }
         return true;
+    }
+
+    // Ничего пока не делает - задел на будущее
+    public static bool IsCastlingValid(int fromRow, int fromCol, int toRow, int toCol)
+    {
+        return false;
     }
 }

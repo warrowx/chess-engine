@@ -1,4 +1,7 @@
 ﻿
+using System.ComponentModel;
+using System.Reflection.Metadata;
+
 class Program
 {
     static void Main(string[] args)
@@ -271,6 +274,8 @@ class Program
             return false;
         }
 
+        UpdateCastlingRights(movingPiece, fromRow, fromCol, toRow, toCol, capturedPiece);
+
         // Обновляем цель для следующего взятия на проходе
         enPassantTarget = null;
         
@@ -290,6 +295,73 @@ class Program
         } 
         return true;
 
+    }
+    static bool whiteKingSideCastle = true;
+    static bool whiteQueenSideCastle = true;
+    static bool blackKingSideCastle = true;
+    static bool blackQueenSideCastle = true;
+    static void UpdateCastlingRights( 
+        char movingPiece,
+        int fromRow,
+        int fromCol,
+        int toRow,
+        int toCol,
+        string capturedPiece)
+    {
+        if (movingPiece == 'K')
+        {
+            whiteKingSideCastle = false;
+            whiteQueenSideCastle = false;
+        }
+        if (movingPiece == 'k')
+        {
+            blackKingSideCastle = false;
+            blackQueenSideCastle = false;
+        }
+        if (movingPiece == 'R')
+        {
+            // Королевский фланг
+            if (fromRow == 7 && fromCol == 7)
+            {
+                whiteKingSideCastle = false;
+            }
+            // Ферзевый фланг
+            if (fromRow == 7 && fromCol == 0)
+            {
+                whiteQueenSideCastle = false;
+            }
+        }
+        if (toRow == 7 && toCol == 7 && capturedPiece == "R")
+        {
+                whiteKingSideCastle = false;
+        }
+        if (toRow == 7 && toCol == 0 && capturedPiece == "R")
+        {
+            whiteQueenSideCastle = false;
+        }
+        if (movingPiece == 'r')
+        {
+            // Ферзевый фланг
+            if (fromRow == 0 && fromCol == 0)
+            {
+                blackQueenSideCastle = false;
+            }
+            // Королеский фланг
+            if (fromRow == 0 && fromCol == 7)
+            {
+                blackKingSideCastle = false;
+            }
+        }
+        if (toRow == 0 && toCol == 0 && capturedPiece == "r")
+        {
+            blackQueenSideCastle = false;
+        }
+        if (toRow == 0 && toCol == 7 && capturedPiece == "r")
+        {
+            blackKingSideCastle = false;
+        }
+        
+        
     }
 
 }
